@@ -4,4 +4,12 @@
 
 [node name="Game" type="Node2D"]
 
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_right = 160.0
+margin_bottom = 96.0
+color = Color( 0, 0, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Snake" parent="." instance=ExtResource( 1 )]
