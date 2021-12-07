@@ -46,7 +46,7 @@ func _physics_process(_delta):
 	if canMove and direction:
 		move()
 		eatFood()
-		colorSnake()
+#		colorSnake()
 		
 		canMove = false
 		yield(get_tree().create_timer(0.2), "timeout")
@@ -58,19 +58,20 @@ func _physics_process(_delta):
 func updateNextPositions():
 	nextPositions.append(nextPositions[-1] + direction)
 	
+#	Check if snake passes through walls
 	if nextPositions[-1].x < 0:
-		nextPositions[-1].x = WIDTH
+		nextPositions[-1].x = WIDTH - 8
 		
 	elif nextPositions[-1].x >= WIDTH:
 		nextPositions[-1].x = 0
 		
 	elif nextPositions[-1].y < 0:
-		nextPositions[-1].y = HEIGHT
+		nextPositions[-1].y = HEIGHT - 8 
 		
 	elif nextPositions[-1].y >= HEIGHT:
 		nextPositions[-1].y = 0
 	
-	
+#	nextPositions will always be one index bigger than the list of current cells
 	if nextPositions.size() > cellList.size() + 1:
 		nextPositions.remove(0)
 
@@ -87,18 +88,25 @@ func move():
 		cell.position = nextPositions[-index]
 
 		index += 1
+	
+#	If next head possition is currently in the list of cells, that means that head collided.
+#	Has a small bug where the collission is checked before the head is updated
 
 	if currentPositions.has(nextPositions[-1]):
-			print('died')
 			get_tree().paused = true
+			yield(get_tree().create_timer(1.5), "timeout")
+			var _scene = get_tree().change_scene("res://Scenes/MainMenu/Menu.tscn")
+			get_tree().paused = false
 
 
 func increaseSize():
 	var cell = cellScene.instance()
 	cell.add_to_group("snakeBody")
+#	Since the nextPositions is one index bigger we can set the new cell to last position in the chain
 	cell.position = nextPositions[0]
 	self.add_child(cell)
 	
+#	Update list of cells since new cell was added
 	cellList = get_tree().get_nodes_in_group("snakeBody")
 
 
@@ -109,14 +117,16 @@ func spawnFood():
 		var y = rng.randi_range(0, 11) * 8
 		
 		foodPosition = Vector2(x, y)
-		print(foodPosition)
 		
-		food = foodScene.instance()
-		food.position = foodPosition
-		
-		get_parent().add_child(food)
-		
-		isFoodSpawned = true
+		if not nextPositions.has(foodPosition):
+			print(foodPosition)
+			
+			food = foodScene.instance()
+			food.position = foodPosition
+			
+			get_parent().add_child(food)
+			
+			isFoodSpawned = true
 
 
 func eatFood():
@@ -127,8 +137,9 @@ func eatFood():
 		isFoodSpawned = false
 
 
+# Simple function to add a gradient to the snake. Stopped to work for some reason
 func colorSnake():
 	var color = 1
 	for cell in cellList:
 		cell.get_node("Sprite").modulate = Color(color, color, color)
-		color += 0.1
+		color += 0.2
